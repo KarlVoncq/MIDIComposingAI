@@ -1,3 +1,6 @@
+# Data
+get adl-piano-midi dataset here : https://github.com/lucasnfe/adl-piano-midi/tree/master/midi
+
 # Data analysis
 - Document here the project: MIDIComposingAI
 - Description: Project Description

@@ -9,6 +9,9 @@ numpy
 pandas
 scikit-learn
 
+# MIDI
+pretty_midi
+
 # tests/linter
 black
 coverage
@@ -27,3 +30,5 @@ six>=1.14
 joblib
 memoized-property
 termcolor
+joblib
+glob==2.0.2

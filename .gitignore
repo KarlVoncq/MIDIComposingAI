@@ -1,6 +1,6 @@
 *.egg-info
 .coverage
-.ipynb_checkpoints
+notebooks
 .DS_Store
 raw_data/
 *.csv
