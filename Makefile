@@ -53,3 +53,9 @@ pypi_test:
 
 pypi:
 	@twine upload dist/* -u $(PYPI_USERNAME)
+
+# ----------------------------------
+#            STORE DATA
+# ----------------------------------
+store_data:
+	@python data/store_data.py
