@@ -8,9 +8,12 @@ wheel>=0.29
 numpy
 pandas
 scikit-learn
+bokeh
+magenta
 
 # MIDI
 pretty_midi
+visual_midi
 
 # tests/linter
 black
@@ -31,4 +34,3 @@ joblib
 memoized-property
 termcolor
 joblib
-glob==2.0.2
