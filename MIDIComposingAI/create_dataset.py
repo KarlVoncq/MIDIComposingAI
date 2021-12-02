@@ -58,7 +58,7 @@ def separate_pitch_velocity(target):
             frame = list(frame)
             velocity = np.sum(frame)
             velocities.append(velocity)
-            pitches.append(frame.index(velocity))
+            pitches.append(frame.index(int(velocity)))
         sample_velocities.append(velocities)
         sample_pitches.append(pitches)
     
@@ -117,4 +117,26 @@ def create_nparray_dataset(file, directory ,name, store=True):
     
     # In the end we need to delete the variables in order to save some RAM
     del([X, y, pitches, velocities, X_accompaniment, y_pitch, y_velocity, dataset])
-    
+
+def create_tuple_target_dataset(file):
+    """
+    Create a dataset with a target being a list of tuples (pitch, velocity)
+    Args:
+        file : a pretty_midi object/file
+    """
+    X, y = create_simple_dataset(file)
+
+    new_target = []
+
+    for sample in y:
+
+        frames = []
+
+        for frame in sample.T:
+
+            list_of_tuples = [(note, velocity) if velocity > 0 else (0, 0) for note, velocity in enumerate(frame)]
+            frames.append(list_of_tuples)
+
+        new_target.append(frames)
+        
+    return X, np.array(new_target)
