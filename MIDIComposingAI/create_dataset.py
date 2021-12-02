@@ -28,14 +28,21 @@ def extract_accompaniment_melody(pretty_midi_file, fs=50, ratio=0.01, sample_len
             try:
                 if piano_roll[j][i] != 0. and abs(last_played_note - piano_roll[j][i])/nb_instant <= ratio:
                     last_played_note = piano_roll[j][i]
-                    empty_piano_roll[j][i] = last_played_note
+                    # We want our values to be between 0 and 127
+                    if last_played_note <= 127:
+                        empty_piano_roll[j][i] = last_played_note
+                    else:
+                        empty_piano_roll[j][i] = 127
                     piano_roll[j][i] = 0.
                     nb_instant = 0
                     break
             except:
                 if piano_roll[j][i] != 0.:
                     last_played_note = piano_roll[j][i]
-                    empty_piano_roll[j][i] = last_played_note
+                    if last_played_note <= 127:
+                        empty_piano_roll[j][i] = last_played_note
+                    else:
+                        empty_piano_roll[j][i] = 127
                     piano_roll[j][i] = 0.
                     nb_instant = 0
                     break
@@ -58,7 +65,7 @@ def separate_pitch_velocity(target):
             frame = list(frame)
             velocity = np.sum(frame)
             velocities.append(velocity)
-            pitches.append(frame.index(int(velocity)))
+            pitches.append(frame.index(velocity))
         sample_velocities.append(velocities)
         sample_pitches.append(pitches)
     
@@ -104,7 +111,7 @@ def create_nparray_dataset(file, directory ,name, store=True):
     
     X_accompaniment = np.array([accompaniment.T for accompaniment in X])
         
-    # Then we add the two target to the dataframe/
+    # Then we add the two target to the dataframe
     y_pitch = np.array([np.array(pitch) for pitch in pitches])
     y_velocity = np.array([np.array(velocity) for velocity in velocities])
     
@@ -140,3 +147,14 @@ def create_tuple_target_dataset(file):
         new_target.append(frames)
         
     return X, np.array(new_target)
+
+def create_classified_melody(melody, to_list=True):
+    """
+    Return a classified melody (0 if no note is played, 1 if a note is played)
+    """
+    classified_melody = [1 if note > 0 else 0 for note in melody]
+
+    if not to_list:
+        return np.array(classified_melody)
+    
+    return classified_melody
