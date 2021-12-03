@@ -25,7 +25,7 @@ def melody_to_piano_roll(pitches, velocities):
     Create a piano roll from a list of pitches and a list of velocities
     """
 
-    piano_roll =np.zeros((128, pitches.shape[0]))
+    piano_roll = np.zeros((128, pitches.shape[0]))
     
     for i, (pitch, velocity) in enumerate(zip(pitches, velocities)):
         if pitch > 0:
@@ -48,9 +48,11 @@ def assemblate_accompaniment_melody(accompaniment, melody):
     """
     Assemblate accompaniment and melody, must be the same size
     """
-    for i, frame in enumerate(melody):
-        for j, note in enumerate(frame):
-            if note > 0:
-                accompaniment[i][j] = note
+    # for i, frame in enumerate(melody):
+    #     for j, note in enumerate(frame):
+    #         if note > 0:
+    #             accompaniment[i][j] = note
     
-    return accompaniment
+    full_musics = accompaniment + melody
+
+    return full_musics
