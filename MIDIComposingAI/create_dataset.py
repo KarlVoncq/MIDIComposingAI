@@ -3,7 +3,7 @@ import pandas as pd
 import joblib
 from os import listdir
 
-def extract_accompaniment_melody(pretty_midi_file, fs=50, ratio=0.01, sample_length=10, sample_set=0):
+def extract_accompaniment_melody(pretty_midi_file, fs=50, sample_length=10, sample_set=0):
     """
     Extract melody from a pretty_midi file.
     
@@ -16,34 +16,38 @@ def extract_accompaniment_melody(pretty_midi_file, fs=50, ratio=0.01, sample_len
                       
     Return : a tuple of pretty_midi.piano_roll variables : (accompaniment, melody)
     """
-    
+    # and (abs(last_played_note - piano_roll[j][i])/nb_instant > ratio)
+
     sample_size = sample_length * fs
     
     piano_roll = pretty_midi_file.get_piano_roll(fs=fs)[:, sample_size*sample_set:sample_size*(sample_set+1)]
     empty_piano_roll = np.zeros(piano_roll.shape)
-    nb_instant = 0
+
+    liste = []
+    # nb_instant = 0
     for i in range(sample_size):
-        nb_instant += 1
+        # nb_instant += 1
         for j in range(127, 0, -1):
             try:
-                if piano_roll[j][i] != 0. and abs(last_played_note - piano_roll[j][i])/nb_instant <= ratio:
+                if piano_roll[j][i] > 0:
                     last_played_note = piano_roll[j][i]
                     # We want our values to be between 0 and 127
-                    if last_played_note <= 127:
-                        empty_piano_roll[j][i] = last_played_note
-                    else:
-                        empty_piano_roll[j][i] = 127
-                    piano_roll[j][i] = 0.
-                    nb_instant = 0
+                    # if last_played_note <= 127:
+                    empty_piano_roll[j][i] = last_played_note
+                    # else:
+                    #     empty_piano_roll[j][i] = 127
+                    piano_roll[j][i] = 0
+                    liste.append([[j],[i]])
+                    # nb_instant = 0
                     break
             except:
-                if piano_roll[j][i] != 0.:
+                if piano_roll[j][i] > 0:
                     last_played_note = piano_roll[j][i]
                     if last_played_note <= 127:
                         empty_piano_roll[j][i] = last_played_note
                     else:
                         empty_piano_roll[j][i] = 127
-                    piano_roll[j][i] = 0.
+                    piano_roll[j][i] = 0
                     nb_instant = 0
                     break
     return (piano_roll, empty_piano_roll)
@@ -109,13 +113,19 @@ def create_nparray_dataset(file, directory ,name, store=True):
     
     pitches, velocities = separate_pitch_velocity(y)
     
-    X_accompaniment = np.array([accompaniment.T for accompaniment in X])
+    i = 0
+
+    y_melody = np.array(
+                [(pitch, velocity) for pitch, velocity in zip(pitches, velocities)]
+            )
+
+    # X_accompaniment = np.array([accompaniment.T for accompaniment in X])
         
     # Then we add the two target to the dataframe
-    y_pitch = np.array([np.array(pitch) for pitch in pitches])
-    y_velocity = np.array([np.array(velocity) for velocity in velocities])
-    
-    dataset = (X_accompaniment, y_pitch, y_velocity)
+    # y_pitch = np.array([np.array(pitch) for pitch in pitches])
+    # y_velocity = np.array([np.array(velocity) for velocity in velocities])
+
+    dataset = (X, y_melody)
     
     if store:
         joblib.dump(dataset, f'../raw_data/pandas_dataframes/{directory}/{name}')
@@ -123,7 +133,7 @@ def create_nparray_dataset(file, directory ,name, store=True):
         return dataset
     
     # In the end we need to delete the variables in order to save some RAM
-    del([X, y, pitches, velocities, X_accompaniment, y_pitch, y_velocity, dataset])
+    del([X, y, y_melody, pitches, velocities, dataset])
 
 def create_tuple_target_dataset(file):
     """
