@@ -3,7 +3,7 @@ import pandas as pd
 import joblib
 from os import listdir
 
-def extract_accompaniment_melody(pretty_midi_file, fs=50, sample_length=10, sample_set=0):
+def extract_accompaniment_melody(pretty_midi_file, fs=50, sample_length=10, ratio=0.1, sample_set=0):
     """
     Extract melody from a pretty_midi file.
     
@@ -16,7 +16,6 @@ def extract_accompaniment_melody(pretty_midi_file, fs=50, sample_length=10, samp
                       
     Return : a tuple of pretty_midi.piano_roll variables : (accompaniment, melody)
     """
-    # and (abs(last_played_note - piano_roll[j][i])/nb_instant > ratio)
 
     sample_size = sample_length * fs
     
@@ -24,21 +23,22 @@ def extract_accompaniment_melody(pretty_midi_file, fs=50, sample_length=10, samp
     empty_piano_roll = np.zeros(piano_roll.shape)
 
     liste = []
-    # nb_instant = 0
+    nb_instant = 0
+
     for i in range(sample_size):
-        # nb_instant += 1
+        nb_instant += 1
         for j in range(127, 0, -1):
             try:
-                if piano_roll[j][i] > 0:
+                if piano_roll[j][i] > 0 and (abs(last_played_note - piano_roll[j][i])/nb_instant <= ratio):
                     last_played_note = piano_roll[j][i]
                     # We want our values to be between 0 and 127
-                    # if last_played_note <= 127:
-                    empty_piano_roll[j][i] = last_played_note
-                    # else:
-                    #     empty_piano_roll[j][i] = 127
+                    if last_played_note <= 127:
+                        empty_piano_roll[j][i] = last_played_note
+                    else:
+                        empty_piano_roll[j][i] = 127
                     piano_roll[j][i] = 0
                     liste.append([[j],[i]])
-                    # nb_instant = 0
+                    nb_instant = 0
                     break
             except:
                 if piano_roll[j][i] > 0:
@@ -48,7 +48,6 @@ def extract_accompaniment_melody(pretty_midi_file, fs=50, sample_length=10, samp
                     else:
                         empty_piano_roll[j][i] = 127
                     piano_roll[j][i] = 0
-                    nb_instant = 0
                     break
     return (piano_roll, empty_piano_roll)
 
@@ -82,7 +81,7 @@ def create_sample(pretty_midi_file, fs):
     piano_roll = pretty_midi_file.piano_roll(fs=fs)
     
 
-def create_simple_dataset(file, mode=None):
+def create_simple_dataset(file, ratio=0.1, mode=None):
     """
     Create a simple dataset for ML/DL
 
@@ -96,25 +95,23 @@ def create_simple_dataset(file, mode=None):
     i = 0
     while True:
         try:
-            accompaniment, melody = extract_accompaniment_melody(file, sample_set=i)
+            accompaniment, melody = extract_accompaniment_melody(file, ratio=ratio, sample_set=i)
             X.append(accompaniment)
             y.append(melody)
             i += 1
         except:
             break
+    
+    return np.array(X, dtype=np.int8), np.array(y, dtype=np.int8)
 
-    return np.array(X), np.array(y)
-
-def create_nparray_dataset(file, directory ,name, store=True):
+def create_nparray_dataset(file, ratio=0.1, directory=None ,name=None, store=True):
     """
     Create a nparray dataset
     """
-    X, y = create_simple_dataset(file)
+    X, y = create_simple_dataset(file, ratio=ratio)
     
     pitches, velocities = separate_pitch_velocity(y)
     
-    i = 0
-
     y_melody = np.array(
                 [(pitch, velocity) for pitch, velocity in zip(pitches, velocities)]
             )
@@ -129,12 +126,13 @@ def create_nparray_dataset(file, directory ,name, store=True):
     
     if store:
         joblib.dump(dataset, f'../raw_data/pandas_dataframes/{directory}/{name}')
+
+        del([X, y, y_melody, pitches, velocities, dataset])
+
     else:
         return dataset
-    
-    # In the end we need to delete the variables in order to save some RAM
-    del([X, y, y_melody, pitches, velocities, dataset])
 
+    
 def create_tuple_target_dataset(file):
     """
     Create a dataset with a target being a list of tuples (pitch, velocity)
