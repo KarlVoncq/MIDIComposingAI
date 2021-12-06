@@ -65,13 +65,13 @@ store_data:
 # ----------------------------------
 # path to the file to upload to GCP (the path to the file should be absolute or should match the directory where the make command is ran)
 # replace with your local path to the `train_1k.csv` and make sure to put the path between quotes
-LOCAL_PATH="XXX"
+LOCAL_PATH="raw_data/pretty_midi/A Musical Joke"
 
 # project id - replace with your GCP project id
-PROJECT_ID=XXX
+PROJECT_ID=wagon-bootcamp-328620
 
 # bucket name - replace with your GCP bucket name
-BUCKET_NAME=XXX
+BUCKET_NAME=wagon-data-770-midi-project
 
 # choose your region from https://cloud.google.com/storage/docs/locations#available_locations
 REGION=europe-west1
@@ -80,7 +80,8 @@ REGION=europe-west1
 BUCKET_FOLDER=data
 
 # name for the uploaded file inside of the bucket (we choose not to rename the file that we upload)
-BUCKET_FILE_NAME=$(shell basename ${LOCAL_PATH})
+BUCKET_FILE_NAME="efgh"
+#$(shell basename ${LOCAL_PATH})
 
 set_project:
 	@gcloud config set project ${PROJECT_ID}
