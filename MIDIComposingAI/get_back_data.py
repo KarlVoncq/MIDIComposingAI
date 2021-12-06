@@ -52,7 +52,7 @@ def assemblate_accompaniment_melody(accompaniment, melody):
     #     for j, note in enumerate(frame):
     #         if note > 0:
     #             accompaniment[i][j] = note
-    
+
     full_musics = accompaniment + melody
 
     return full_musics
