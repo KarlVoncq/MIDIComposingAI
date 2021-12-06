@@ -1,9 +1,9 @@
 import numpy as np
-import pandas as pd
 import joblib
-from os import listdir
+import pandas as pd
+from sklearn.preprocessing import MultiLabelBinarizer
 
-def extract_accompaniment_melody(pretty_midi_file, fs=50, sample_length=10, sample_set=0):
+def extract_accompaniment_melody(pretty_midi_file, fs=50, sample_length=10, ratio=0.1, sample_set=0):
     """
     Extract melody from a pretty_midi file.
     
@@ -16,7 +16,6 @@ def extract_accompaniment_melody(pretty_midi_file, fs=50, sample_length=10, samp
                       
     Return : a tuple of pretty_midi.piano_roll variables : (accompaniment, melody)
     """
-    # and (abs(last_played_note - piano_roll[j][i])/nb_instant > ratio)
 
     sample_size = sample_length * fs
     
@@ -24,21 +23,22 @@ def extract_accompaniment_melody(pretty_midi_file, fs=50, sample_length=10, samp
     empty_piano_roll = np.zeros(piano_roll.shape)
 
     liste = []
-    # nb_instant = 0
+    nb_instant = 0
+
     for i in range(sample_size):
-        # nb_instant += 1
+        nb_instant += 1
         for j in range(127, 0, -1):
             try:
-                if piano_roll[j][i] > 0:
+                if piano_roll[j][i] > 0 and (abs(last_played_note - piano_roll[j][i])/nb_instant <= ratio):
                     last_played_note = piano_roll[j][i]
                     # We want our values to be between 0 and 127
-                    # if last_played_note <= 127:
-                    empty_piano_roll[j][i] = last_played_note
-                    # else:
-                    #     empty_piano_roll[j][i] = 127
+                    if last_played_note <= 127:
+                        empty_piano_roll[j][i] = last_played_note
+                    else:
+                        empty_piano_roll[j][i] = 127
                     piano_roll[j][i] = 0
                     liste.append([[j],[i]])
-                    # nb_instant = 0
+                    nb_instant = 0
                     break
             except:
                 if piano_roll[j][i] > 0:
@@ -48,7 +48,6 @@ def extract_accompaniment_melody(pretty_midi_file, fs=50, sample_length=10, samp
                     else:
                         empty_piano_roll[j][i] = 127
                     piano_roll[j][i] = 0
-                    nb_instant = 0
                     break
     return (piano_roll, empty_piano_roll)
 
@@ -57,32 +56,43 @@ def separate_pitch_velocity(target):
     Separate pitch and velocity within the target
     """
     # Lists of each velocities and pitches for each sample
-    sample_velocities = []
-    sample_pitches = []
-    
-    for sample in target:
-        # Lists of velocities and pitches within the sample
+
+    if len(target.shape) < 3:
+        target = target.reshape(1, 128, 500)
         velocities = []
         pitches = []
+
+    else:
+        sample_velocities = []
+        sample_pitches = []
+
+    for sample in target.T:
+        # Lists of velocities and pitches within the sample
+        
+        if target.shape[0] > 1:
+            velocities = []
+            pitches = []
         
         for frame in sample.T:
             frame = list(frame)
             velocity = np.sum(frame)
+            if velocity > 127:
+                velocity = 127
             velocities.append(velocity)
             pitches.append(frame.index(velocity))
-        sample_velocities.append(velocities)
-        sample_pitches.append(pitches)
-    
-    return (sample_pitches, sample_velocities)
+        
+        if target.shape[0] > 1:
+            sample_velocities.append(velocities)
+            sample_pitches.append(pitches)
 
-def create_sample(pretty_midi_file, fs):
-    """
-    Return a sample of the file
-    """
-    piano_roll = pretty_midi_file.piano_roll(fs=fs)
+    try :
+        melody = np.array((sample_pitches, sample_velocities), dtype=np.int8).reshape(sample_pitches.shape[0], -1)
+    except:
+        melody = np.array((pitches, velocities), dtype=np.int8).reshape(1, -1)
     
+    return (melody)
 
-def create_simple_dataset(file, mode=None):
+def create_simple_dataset(file, ratio=0.1):
     """
     Create a simple dataset for ML/DL
 
@@ -96,25 +106,56 @@ def create_simple_dataset(file, mode=None):
     i = 0
     while True:
         try:
-            accompaniment, melody = extract_accompaniment_melody(file, sample_set=i)
+            accompaniment, melody = extract_accompaniment_melody(file, ratio=ratio, sample_set=i)
             X.append(accompaniment)
-            y.append(melody)
+            y.append(separate_pitch_velocity(melody))
             i += 1
         except:
             break
+    
+    return np.array(X, dtype=np.int8), np.array(y, dtype=np.int8)
 
-    return np.array(X), np.array(y)
 
-def create_nparray_dataset(file, directory ,name, store=True):
+def get_unique_pitches_one_oct(acc):
+    
+    pitches = [index % 12 for instant in acc for index, vel in enumerate(instant) if vel > 0]
+     
+    return list(set(pitches))
+
+
+def adding_chords_info(chords_df_path, dataset):
+
+    chords_df = pd.read_csv('../raw_data/chords_midi.csv', sep=";")
+
+    chords_dict = chords_df.set_index('Chord').T.to_dict('list')
+
+    chords_df = pd.read_csv(chords_df_path, sep=";")
+    chords_dict = chords_df.set_index('Chord').T.to_dict('list')
+    mlb = MultiLabelBinarizer()
+    mlb.fit([chords_dict.keys()])
+    df_list = []
+    for data in dataset:
+        pitches = get_unique_pitches_one_oct(data)
+        
+        chords = [key for key, value in chords_dict.items() if set(value).issubset(pitches)]
+        list_for_df = [[data, chords]]
+        df_list.append([list_for_df, chords])
+
+    df = pd.DataFrame(df_list, columns=['Acc', 'Chords'])
+
+    chords_encoded = mlb.transform(df['Chords'])
+    
+    # return df.drop(columns='Chords')
+    return chords_encoded
+
+def create_dataset(file, ratio=0.1, directory=None ,name=None, store=False):
     """
     Create a nparray dataset
     """
-    X, y = create_simple_dataset(file)
+    X, y = create_simple_dataset(file, ratio=ratio)
     
     pitches, velocities = separate_pitch_velocity(y)
     
-    i = 0
-
     y_melody = np.array(
                 [(pitch, velocity) for pitch, velocity in zip(pitches, velocities)]
             )
@@ -129,42 +170,8 @@ def create_nparray_dataset(file, directory ,name, store=True):
     
     if store:
         joblib.dump(dataset, f'../raw_data/pandas_dataframes/{directory}/{name}')
+
+        del([X, y, y_melody, pitches, velocities, dataset])
+
     else:
         return dataset
-    
-    # In the end we need to delete the variables in order to save some RAM
-    del([X, y, y_melody, pitches, velocities, dataset])
-
-def create_tuple_target_dataset(file):
-    """
-    Create a dataset with a target being a list of tuples (pitch, velocity)
-    Args:
-        file : a pretty_midi object/file
-    """
-    X, y = create_simple_dataset(file)
-
-    new_target = []
-
-    for sample in y:
-
-        frames = []
-
-        for frame in sample.T:
-
-            list_of_tuples = [(note, velocity) if velocity > 0 else (0, 0) for note, velocity in enumerate(frame)]
-            frames.append(list_of_tuples)
-
-        new_target.append(frames)
-        
-    return X, np.array(new_target)
-
-def create_classified_melody(melody, to_list=True):
-    """
-    Return a classified melody (0 if no note is played, 1 if a note is played)
-    """
-    classified_melody = [1 if note > 0 else 0 for note in melody]
-
-    if not to_list:
-        return np.array(classified_melody)
-    
-    return classified_melody
