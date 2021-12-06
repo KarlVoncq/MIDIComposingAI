@@ -10,7 +10,6 @@ pandas
 scikit-learn
 bokeh
 magenta
-tensorflow
 
 # MIDI
 pretty_midi
