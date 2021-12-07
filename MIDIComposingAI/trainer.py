@@ -1,7 +1,9 @@
 import joblib
+import numpy as np
 from sklearn.tree import DecisionTreeRegressor
-from MIDIComposingAI.data import load_result
 from sklearn.model_selection import train_test_split
+from MIDIComposingAI.data import load_result
+from MIDIComposingAI.encoders import adding_chords_info
 
 MODEL_NAME = "MIDIComposingAI"
 MODEL_VERSION = "1"
@@ -16,7 +18,9 @@ class Trainer(object):
         self.y = y
 
     def preprocess(self):
+        chord = adding_chords_info(self.X)
         self.X = self.X.reshape((self.X.shape[0], -1))
+        self.X = np.concatenate((chord, self.X), axis=1, dtype=np.int8)
         self.y = self.y.reshape((self.y.shape[0], -1))
 
     def train_model(self):

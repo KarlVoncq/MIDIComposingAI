@@ -1,14 +1,16 @@
 from google.cloud import storage
 from MIDIComposingAI.create_dataset import create_simple_dataset
 import numpy as np
+import pandas as pd
 import joblib
 import gcsfs
 
 PROJECT_ID='wagon-bootcamp-328620'
 BUCKET_NAME = "wagon-data-770-midi-project"
 RESULT_DATA_PATH = "result"
+BUCKET_CHORDS_DATA = "data/chords_midi.csv"
 
-def get_data_from_gcp(optimize=False, **kwargs):
+def get_data_from_gcp(**kwargs):
     """method to get the training data (or a portion of it) from google cloud bucket"""
     # ---- CREATE CLIENT & BUCKET FOR GCP ----
     client = storage.Client()
@@ -42,3 +44,14 @@ def load_result(reload_midi=False):
         with fs.open(f'{BUCKET_NAME}/{blob.name}') as f:
             result = joblib.load(f)
     return result
+
+def get_chords_data(local=False):
+    """method to get the chords data from google cloud bucket"""
+    # Add Client() here
+    client = storage.Client()
+    if local:
+        path = "raw_data/chords_midi.csv"
+    else:
+        path = "gs://{}/{}".format(BUCKET_NAME, BUCKET_CHORDS_DATA)
+    df = pd.read_csv(path, sep=";")
+    return df

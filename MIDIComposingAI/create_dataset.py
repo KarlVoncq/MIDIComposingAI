@@ -1,24 +1,22 @@
 import numpy as np
 import joblib
-import pandas as pd
-from sklearn.preprocessing import MultiLabelBinarizer
 
 def extract_accompaniment_melody(pretty_midi_file, fs=50, sample_length=10, ratio=0.1, sample_set=0):
     """
     Extract melody from a pretty_midi file.
-    
+
     Args :
         pretty_midi_file : a pretty_midi.Pretty_midi() file
         fs : number of frame per second, use to create the piano roll from the pretty_midi file
         ratio : the ratio above wich we won't accept a note to be extract, it prevents from having jerky melodies
         sample_lentgh : integer, the length in seconds of the sample we wan't to extract the melody from.
         sample_set : integer, it allows you to choose where in the piece you want to extract the melody
-                      
+
     Return : a tuple of pretty_midi.piano_roll variables : (accompaniment, melody)
     """
 
     sample_size = sample_length * fs
-    
+
     piano_roll = pretty_midi_file.get_piano_roll(fs=fs)[:, sample_size*sample_set:sample_size*(sample_set+1)]
     empty_piano_roll = np.zeros(piano_roll.shape)
 
@@ -68,11 +66,11 @@ def separate_pitch_velocity(target):
 
     for sample in target.T:
         # Lists of velocities and pitches within the sample
-        
+
         if target.shape[0] > 1:
             velocities = []
             pitches = []
-        
+
         for frame in sample.T:
             frame = list(frame)
             velocity = np.sum(frame)
@@ -80,7 +78,7 @@ def separate_pitch_velocity(target):
                 velocity = 127
             velocities.append(velocity)
             pitches.append(frame.index(velocity))
-        
+
         if target.shape[0] > 1:
             sample_velocities.append(velocities)
             sample_pitches.append(pitches)
@@ -89,7 +87,7 @@ def separate_pitch_velocity(target):
         melody = np.array((sample_pitches, sample_velocities), dtype=np.int8).reshape(sample_pitches.shape[0], -1)
     except:
         melody = np.array((pitches, velocities), dtype=np.int8).reshape(1, -1)
-    
+
     return (melody)
 
 def create_simple_dataset(file, ratio=0.1):
@@ -112,62 +110,29 @@ def create_simple_dataset(file, ratio=0.1):
             i += 1
         except:
             break
-    
+
     return np.array(X, dtype=np.int8), np.array(y, dtype=np.int8)
-
-
-def get_unique_pitches_one_oct(acc):
-    
-    pitches = [index % 12 for instant in acc for index, vel in enumerate(instant) if vel > 0]
-     
-    return list(set(pitches))
-
-
-def adding_chords_info(chords_df_path, dataset):
-
-    chords_df = pd.read_csv('../raw_data/chords_midi.csv', sep=";")
-
-    chords_dict = chords_df.set_index('Chord').T.to_dict('list')
-
-    chords_df = pd.read_csv(chords_df_path, sep=";")
-    chords_dict = chords_df.set_index('Chord').T.to_dict('list')
-    mlb = MultiLabelBinarizer()
-    mlb.fit([chords_dict.keys()])
-    df_list = []
-    for data in dataset:
-        pitches = get_unique_pitches_one_oct(data)
-        
-        chords = [key for key, value in chords_dict.items() if set(value).issubset(pitches)]
-        list_for_df = [[data, chords]]
-        df_list.append([list_for_df, chords])
-
-    df = pd.DataFrame(df_list, columns=['Acc', 'Chords'])
-
-    chords_encoded = mlb.transform(df['Chords'])
-    
-    # return df.drop(columns='Chords')
-    return chords_encoded
 
 def create_dataset(file, ratio=0.1, directory=None ,name=None, store=False):
     """
     Create a nparray dataset
     """
     X, y = create_simple_dataset(file, ratio=ratio)
-    
+
     pitches, velocities = separate_pitch_velocity(y)
-    
+
     y_melody = np.array(
                 [(pitch, velocity) for pitch, velocity in zip(pitches, velocities)]
             )
 
     # X_accompaniment = np.array([accompaniment.T for accompaniment in X])
-        
+
     # Then we add the two target to the dataframe
     # y_pitch = np.array([np.array(pitch) for pitch in pitches])
     # y_velocity = np.array([np.array(velocity) for velocity in velocities])
 
     dataset = (X, y_melody)
-    
+
     if store:
         joblib.dump(dataset, f'../raw_data/pandas_dataframes/{directory}/{name}')
 
