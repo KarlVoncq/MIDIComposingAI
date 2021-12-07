@@ -1,7 +1,10 @@
 import joblib
-from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeRegressor
-from MIDIComposingAI.data import get_data_from_gcp
+from MIDIComposingAI.data import load_result
+from sklearn.model_selection import train_test_split
+
+MODEL_NAME = "MIDIComposingAI"
+MODEL_VERSION = "1"
 
 class Trainer(object):
     def __init__(self, X, y):
@@ -9,29 +12,41 @@ class Trainer(object):
             X: numpy array
             y: numpy array
         """
-        self.pipeline = None
         self.X = X
         self.y = y
 
-    # def set_pipeline(self):
-    #     """defines the pipeline as a class attribute"""
-    #     # preproc_pipe = # PIPELINE_TO_DEFINE
+    def preprocess(self):
+        self.X = self.X.reshape((self.X.shape[0], -1))
+        self.y = self.y.reshape((self.y.shape[0], -1))
 
-    #     self.pipeline = Pipeline([
-    #         ('preproc', preproc_pipe),
-    #         ('tree_model', DecisionTreeRegressor())
-    #     ])
+    def train_model(self):
+        """method that trains the model"""
+        tree = DecisionTreeRegressor()
+        tree.fit(self.X, self.y)
+        print("trained model")
+        return tree
 
-    def run(self):
-        self.set_pipeline()
-        self.pipeline.fit(self.X, self.y)
+    def save_model_to_gcp(model):
+        local_model_name = 'model.joblib'
+        # saving the trained model to disk (which does not really make sense
+        # if we are running this code on GCP, because then this file cannot be accessed once the code finished its execution)
+        joblib.dump(model, local_model_name)
+        print("saved model.joblib locally")
+        client = storage.Client()
+        bucket = client.bucket(BUCKET_NAME)
+        storage_location = f"models/{MODEL_NAME}/{MODEL_VERSION}/{local_model_name}"
+        blob = bucket.blob(storage_location)
+        blob.upload_from_filename(local_model_name)
+        print("uploaded model.joblib to gcp cloud storage under \n => {}".format(storage_location))
 
     def save_model_locally(self):
         """Save the model into a .joblib format"""
         joblib.dump(self.pipeline, 'model.joblib')
         print(colored("model.joblib saved locally", "green"))
 
-
 if __name__ == "__main__":
-    df = get_data_from_gcp()
-    print(df)
+    X, y = load_result()
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.01, random_state=2)
+    trainer = Trainer(X=X_train, y=y_train)
+    trainer.preprocess()
+    trainer.train_model()
