@@ -1,9 +1,7 @@
-import pandas as pd
 from google.cloud import storage
-from MIDIComposingAI.create_dataset import create_simple_dataset, extract_accompaniment_melody
-import joblib
+from MIDIComposingAI.create_dataset import create_simple_dataset
 import numpy as np
-import pickle
+import joblib
 import gcsfs
 
 PROJECT_ID='wagon-bootcamp-328620'
