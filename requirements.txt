@@ -26,6 +26,7 @@ gcsfs
 google-cloud-storage
 mlflow
 s3fs
+fsspec==2021.11.1
 
 # utilities
 six>=1.14
