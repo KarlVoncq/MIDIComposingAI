@@ -90,7 +90,7 @@ BUCKET_TRAINING_FOLDER = 'trainings'
 
 ##### Machine configuration - - - - - - - - - - - - - - - -
 
-PYTHON_VERSION=3.8
+PYTHON_VERSION=3.7
 FRAMEWORK=scikit-learn
 RUNTIME_VERSION=2.2
 
