@@ -9,7 +9,6 @@ numpy
 pandas
 scikit-learn
 bokeh
-magenta
 
 # MIDI
 pretty_midi
