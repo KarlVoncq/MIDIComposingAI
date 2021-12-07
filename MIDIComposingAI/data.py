@@ -1,36 +1,46 @@
 import pandas as pd
 from google.cloud import storage
-from MIDIComposingAI.create_dataset import create_nparray_dataset, extract_accompaniment_melody
+from MIDIComposingAI.create_dataset import create_simple_dataset, extract_accompaniment_melody
 import joblib
 import numpy as np
+import pickle
+import gcsfs
 
 PROJECT_ID='wagon-bootcamp-328620'
 BUCKET_NAME = "wagon-data-770-midi-project"
-BUCKET_TRAIN_DATA_PATH = "data/abcd"
-
-import pandas as pd
-import gcsfs
+RESULT_DATA_PATH = "result"
 
 def get_data_from_gcp(optimize=False, **kwargs):
     """method to get the training data (or a portion of it) from google cloud bucket"""
+    # ---- CREATE CLIENT & BUCKET FOR GCP ----
     client = storage.Client()
     bucket = client.bucket(BUCKET_NAME)
-    # blob = bucket.blob(BUCKET_TRAIN_DATA_PATH)
-    blobs=list(client.list_blobs(bucket))
-    # blobs=bucket.list_blobs() # DEPRECATED
+    blobs = list(client.list_blobs(bucket, prefix='data/'))
     fs = gcsfs.GCSFileSystem(project=PROJECT_ID)
+    # ---- GET PRETTY MIDI FILES & CONCATENATE THEM AS ONE TUPLE OF NP ARRAYS ----
     with fs.open(f'{BUCKET_NAME}/{blobs[1].name}') as f:
         file = joblib.load(f)
-    X, y = create_nparray_dataset(file, 'data' ,'abcd', store=False)
+    X, y = create_simple_dataset(file)
     for blob in blobs[2:]:
-        # if(not blob.name.endswith("/")): #no longer needed cause we change it to list
         with fs.open(f'{BUCKET_NAME}/{blob.name}') as f:
             file = joblib.load(f)
-        loaded = create_nparray_dataset(file, 'data' ,'abcd', store=False)
+        loaded = create_simple_dataset(file)
         X = np.concatenate((X, loaded[0]))
         y = np.concatenate((y, loaded[1]))
-    print(X.shape, y.shape)
-    return X, y
+    return (X, y)
 
-# p.map(process_file, listdir(input))
-# List blobs iterate in folder
+def load_result(reload_midi=False):
+    fs = gcsfs.GCSFileSystem(project=PROJECT_ID)
+    # ---- RELOAD RESULT FROM PRETTY MIDI FILES ----
+    if reload_midi:
+        result = get_data_from_gcp()
+        with fs.open(f'{BUCKET_NAME}/{RESULT_DATA_PATH}', 'wb') as f:
+            pickle.dump(result, f)
+    # ---- LOAD RESULT FROM GCP ----
+    else:
+        client = storage.Client()
+        bucket = client.bucket(BUCKET_NAME)
+        blob = bucket.blob(RESULT_DATA_PATH)
+        with fs.open(f'{BUCKET_NAME}/{blob.name}') as f:
+            result = joblib.load(f)
+    return result
