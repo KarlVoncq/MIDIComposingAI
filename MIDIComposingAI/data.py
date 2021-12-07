@@ -13,13 +13,13 @@ def get_data_from_gcp(optimize=False, **kwargs):
     # ---- CREATE CLIENT & BUCKET FOR GCP ----
     client = storage.Client()
     bucket = client.bucket(BUCKET_NAME)
-    blobs = list(client.list_blobs(bucket, prefix='data/'))
+    blobs = list(client.list_blobs(bucket, prefix='data/pretty_midi/'))
     fs = gcsfs.GCSFileSystem(project=PROJECT_ID)
     # ---- GET PRETTY MIDI FILES & CONCATENATE THEM AS ONE TUPLE OF NP ARRAYS ----
-    with fs.open(f'{BUCKET_NAME}/{blobs[1].name}') as f:
+    with fs.open(f'{BUCKET_NAME}/{blobs[0].name}') as f:
         file = joblib.load(f)
     X, y = create_simple_dataset(file)
-    for blob in blobs[2:]:
+    for blob in blobs[1:10]:
         with fs.open(f'{BUCKET_NAME}/{blob.name}') as f:
             file = joblib.load(f)
         loaded = create_simple_dataset(file)
@@ -33,7 +33,7 @@ def load_result(reload_midi=False):
     if reload_midi:
         result = get_data_from_gcp()
         with fs.open(f'{BUCKET_NAME}/{RESULT_DATA_PATH}', 'wb') as f:
-            pickle.dump(result, f)
+            joblib.dump(result, f)
     # ---- LOAD RESULT FROM GCP ----
     else:
         client = storage.Client()
