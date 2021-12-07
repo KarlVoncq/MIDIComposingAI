@@ -123,7 +123,7 @@ def get_unique_pitches_one_oct(acc):
     return list(set(pitches))
 
 
-def adding_chords_info(chords_df_path, dataset):
+def adding_chords_info(chords_df_path, dataset, verbose=0):
 
     chords_df = pd.read_csv('../raw_data/chords_midi.csv', sep=";")
 
@@ -134,18 +134,19 @@ def adding_chords_info(chords_df_path, dataset):
     mlb = MultiLabelBinarizer()
     mlb.fit([chords_dict.keys()])
     df_list = []
-    for data in dataset:
+    for i, data in enumerate(dataset):
         pitches = get_unique_pitches_one_oct(data)
         
         chords = [key for key, value in chords_dict.items() if set(value).issubset(pitches)]
         list_for_df = [[data, chords]]
         df_list.append([list_for_df, chords])
+        if verbose == 1 and i % 100 == 0:
+            print(f'{i+1} done')
 
     df = pd.DataFrame(df_list, columns=['Acc', 'Chords'])
 
     chords_encoded = mlb.transform(df['Chords'])
     
-    # return df.drop(columns='Chords')
     return chords_encoded
 
 def create_dataset(file, ratio=0.1, directory=None ,name=None, store=False):
