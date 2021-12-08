@@ -121,7 +121,7 @@ mccabe==0.6.1
 memoized-property==1.0.3
 mesh-tensorflow==0.1.19
 midi2audio==0.1.1
-mido==1.2.10
+mido==1.2.6
 mir-eval==0.6
 mistune==0.8.4
 mlflow==1.21.0
