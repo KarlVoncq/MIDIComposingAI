@@ -9,3 +9,4 @@ pandas
 soundfile
 pretty_midi
 pyFluidsynth
+fluidsynth==2.3.1
