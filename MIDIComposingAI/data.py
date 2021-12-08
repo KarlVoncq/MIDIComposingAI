@@ -16,21 +16,24 @@ def get_data_from_gcp(**kwargs):
     client = storage.Client()
     bucket = client.bucket(BUCKET_NAME)
     blobs = list(client.list_blobs(bucket, prefix='data/pretty_midi/'))
-    fs = gcsfs.GCSFileSystem(project=PROJECT_ID)
+    fs = gcsfs.GCSFileSystem(project=PROJECT_ID, token='cloud')
     # ---- GET PRETTY MIDI FILES & CONCATENATE THEM AS ONE TUPLE OF NP ARRAYS ----
     with fs.open(f'{BUCKET_NAME}/{blobs[0].name}') as f:
         file = joblib.load(f)
     X, y = create_simple_dataset(file)
-    for blob in blobs[1:10]:
-        with fs.open(f'{BUCKET_NAME}/{blob.name}') as f:
-            file = joblib.load(f)
-        loaded = create_simple_dataset(file)
-        X = np.concatenate((X, loaded[0]))
-        y = np.concatenate((y, loaded[1]))
+    for blob in blobs[1:]:
+        try:
+            with fs.open(f'{BUCKET_NAME}/{blob.name}') as f:
+                file = joblib.load(f)
+            loaded = create_simple_dataset(file)
+            X = np.concatenate((X, loaded[0]))
+            y = np.concatenate((y, loaded[1]))
+        except:
+            pass
     return (X, y)
 
 def load_result(reload_midi=False):
-    fs = gcsfs.GCSFileSystem(project=PROJECT_ID)
+    fs = gcsfs.GCSFileSystem(project=PROJECT_ID, token='cloud')
     # ---- RELOAD RESULT FROM PRETTY MIDI FILES ----
     if reload_midi:
         result = get_data_from_gcp()

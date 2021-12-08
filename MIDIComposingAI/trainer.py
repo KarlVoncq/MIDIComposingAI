@@ -1,5 +1,6 @@
 import joblib
 import numpy as np
+from google.cloud import storage
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.model_selection import train_test_split
 from MIDIComposingAI.data import load_result
@@ -7,6 +8,7 @@ from MIDIComposingAI.encoders import adding_chords_info
 
 MODEL_NAME = "MIDIComposingAI"
 MODEL_VERSION = "1"
+BUCKET_NAME = "wagon-data-770-midi-project"
 
 class Trainer(object):
     def __init__(self, X, y):
@@ -20,7 +22,7 @@ class Trainer(object):
     def preprocess(self):
         chord = adding_chords_info(self.X)
         self.X = self.X.reshape((self.X.shape[0], -1))
-        self.X = np.concatenate((chord, self.X), axis=1, dtype=np.int8)
+        self.X = np.concatenate((chord, self.X), axis=1)
         self.y = self.y.reshape((self.y.shape[0], -1))
 
     def train_model(self):
@@ -49,8 +51,9 @@ class Trainer(object):
         print(colored("model.joblib saved locally", "green"))
 
 if __name__ == "__main__":
-    X, y = load_result()
+    X, y = load_result(reload_midi=True)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.01, random_state=2)
     trainer = Trainer(X=X_train, y=y_train)
     trainer.preprocess()
     trainer.train_model()
+    trainer.save_model_to_gcp()
