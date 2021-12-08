@@ -28,17 +28,16 @@ def get_binary_file_downloader_html(bin_file, file_label='File'):
         data = f.read()
     bin_str = base64.b64encode(data).decode()
     href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(bin_file)}">Download {file_label}</a>'
-    print(href)
     return href
 
-st.markdown(get_binary_file_downloader_html('test.mid', 'Text Download'), unsafe_allow_html=True)
+
+uploaded_file = st.file_uploader("Choose a file", type=['mid'])
+
+# st.markdown(get_binary_file_downloader_html(uploaded_file, 'Text Download'), unsafe_allow_html=True) 
 
 st.markdown('''
 Let us  find you a melody for your MIDI file !
 ''')
-
-# Load user MIDI file
-uploaded_file = st.file_uploader("Choose a file", type=['mid'])
 
 pretty_midi.PrettyMIDI(uploaded_file).write('new.mid')
 
@@ -59,7 +58,6 @@ with st.spinner(f"Transcribing to FluidSynth"):
     wavfile.write(virtualfile, 44100, audio_data)
 
 st.audio(virtualfile)
-st.markdown("Download the audio by right-clicking on the media player")
 
 # st.audio('tes', format='audio/mp3', start_time=0)
 # # pm = pretty_midi.PrettyMIDI('file.mid')
