@@ -5,5 +5,4 @@ numpy
 streamlit
 midi2audio
 scipy
-re
 pandas
