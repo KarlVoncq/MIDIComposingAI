@@ -8,3 +8,4 @@ scipy
 pandas
 soundfile
 pretty_midi
+pyFluidsynth
