@@ -39,16 +39,18 @@ st.markdown('''
 Let us  find you a melody for your MIDI file !
 ''')
 
-pretty_midi.PrettyMIDI(uploaded_file).write('new.mid')
+pm = pretty_midi.PrettyMIDI(uploaded_file)
+# pretty_midi.PrettyMIDI(uploaded_file).write('new.mid')
+plot_piano_roll_librosa(pm, 'Your file')
 
 fs = FluidSynth()
 
-fs.midi_to_audio('new.mid', 'new.wav')
+# fs.midi_to_audio('new.mid', 'new.wav')
 
 st.audio('new.wav')
 
 with st.spinner(f"Transcribing to FluidSynth"):
-    midi_data = pretty_midi.PrettyMIDI(uploaded_file)
+    midi_data = pm
     audio_data = midi_data.fluidsynth()
     audio_data = np.int16(
         audio_data / np.max(np.abs(audio_data)) * 32767 * 0.9
