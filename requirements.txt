@@ -7,3 +7,4 @@ midi2audio
 scipy
 pandas
 soundfile
+pretty_midi
