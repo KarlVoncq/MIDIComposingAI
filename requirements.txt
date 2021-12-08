@@ -6,4 +6,3 @@ streamlit
 midi2audio
 scipy
 pandas
-libsndfile1-dev
