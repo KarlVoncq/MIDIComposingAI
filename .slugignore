@@ -1,0 +1,9 @@
+*.mid
+*.mp3
+*.wav
+*.sf2
+/app/aplaymidi.py
+/app/58/mp3:Zone.Identifier
+/app/test.py
+/app/midi_to_audio.py
+/app/__pycache__
