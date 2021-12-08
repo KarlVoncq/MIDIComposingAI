@@ -1,6 +1,6 @@
 setuptools
 librosa
-maptplotlib
+matplotlib
 numpy
 streamlit
 MIDIComposingAI
