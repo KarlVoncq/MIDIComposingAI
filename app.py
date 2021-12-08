@@ -4,7 +4,6 @@ from matplotlib.pyplot import plot
 from numpy.core.numeric import full
 import streamlit as st
 from requests.api import request
-from MIDIComposingAI.utils import piano_roll_to_pretty_midi
 from utils import plot_piano_roll_librosa
 import pretty_midi
 import requests
