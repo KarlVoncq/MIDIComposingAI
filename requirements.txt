@@ -11,3 +11,4 @@ pyFluidsynth
 pretty_midi
 sklearn
 joblib
+fluidsynth
