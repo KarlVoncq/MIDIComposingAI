@@ -7,9 +7,6 @@ midi2audio
 scipy
 pandas
 soundfile
-pyFluidsynth
 pretty_midi
 sklearn
 joblib
-fluidsynth
-uvicorn
