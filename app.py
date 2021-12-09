@@ -26,22 +26,22 @@ pm = pretty_midi.PrettyMIDI(uploaded_file)
 # pretty_midi.PrettyMIDI(uploaded_file).write('new.mid')
 
 
-def pretty_midi_to_audio(pm):
-    with st.spinner(f"Transcribing to FluidSynth"):
-        midi_data = pm
-        audio_data = midi_data.fluidsynth()
-        audio_data = np.int16(
-            audio_data / np.max(np.abs(audio_data)) * 32767 * 0.9
-        )  # -- Normalize for 16 bit audio https://github.com/jkanner/streamlit-audio/blob/main/helper.py
+# def pretty_midi_to_audio(pm):
+#     with st.spinner(f"Transcribing to FluidSynth"):
+#         midi_data = pm
+#         audio_data = midi_data.fluidsynth()
+#         audio_data = np.int16(
+#             audio_data / np.max(np.abs(audio_data)) * 32767 * 0.9
+#         )  # -- Normalize for 16 bit audio https://github.com/jkanner/streamlit-audio/blob/main/helper.py
 
-        virtualfile = io.BytesIO()
-        wavfile.write(virtualfile, 44100, audio_data)
+#         virtualfile = io.BytesIO()
+#         wavfile.write(virtualfile, 44100, audio_data)
 
-    st.audio(virtualfile)
+#     st.audio(virtualfile)
 
 if uploaded_file:
     plot_piano_roll_librosa(pm, 'Your file')
-    pretty_midi_to_audio(pm)
+    # pretty_midi_to_audio(pm)
 
 
 X = pm.get_piano_roll(fs=50)
@@ -65,10 +65,10 @@ pm_mel = piano_roll_to_pretty_midi(mel, fs=50)
 pm_full_music = piano_roll_to_pretty_midi(full_music, fs=50)
 
 plot_piano_roll_librosa(pm_mel, 'Melody')
-pretty_midi_to_audio(pm_mel)
+# pretty_midi_to_audio(pm_mel)
 
 plot_piano_roll_librosa(pm_full_music, 'Full music')
-pretty_midi_to_audio(pm_full_music)
+# pretty_midi_to_audio(pm_full_music)
 
 st.title('Download your melody !')
 
@@ -80,4 +80,4 @@ def get_binary_file_downloader_html(bin_file, file_label='File'):
     return href
 
 pm_mel.write('AI_mel.mid')
-st.markdown(get_binary_file_downloader_html('pm_mel.mid', 'AI_melody.mid'), unsafe_allow_html=True)
+st.markdown(get_binary_file_downloader_html('AI_mel.mid', 'AI_melody.mid'), unsafe_allow_html=True)
