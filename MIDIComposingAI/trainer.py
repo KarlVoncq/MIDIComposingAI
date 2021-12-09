@@ -7,8 +7,10 @@ from MIDIComposingAI.data import load_result
 from MIDIComposingAI.encoders import adding_chords_info
 
 MODEL_NAME = "MIDIComposingAI"
-MODEL_VERSION = "1"
+MODEL_VERSION = "3"
 BUCKET_NAME = "wagon-data-770-midi-project"
+
+STORAGE_LOCATION = 'models/MIDIComposingAI/2/model.joblib'
 
 class Trainer(object):
     def __init__(self, X, y):
@@ -16,6 +18,7 @@ class Trainer(object):
             X: numpy array
             y: numpy array
         """
+        self.model = None
         self.X = X
         self.y = y
 
@@ -27,33 +30,32 @@ class Trainer(object):
 
     def train_model(self):
         """method that trains the model"""
-        tree = DecisionTreeRegressor()
-        tree.fit(self.X, self.y)
+        self.model = DecisionTreeRegressor()
+        self.model.fit(self.X, self.y)
         print("trained model")
-        return tree
+        return self.model
 
-    def save_model_to_gcp(model):
-        local_model_name = 'model.joblib'
-        # saving the trained model to disk (which does not really make sense
-        # if we are running this code on GCP, because then this file cannot be accessed once the code finished its execution)
-        joblib.dump(model, local_model_name)
+    def save_model(self):
+        # saving the trained model to disk is mandatory to then beeing able to upload it to storage
+        # Implement here
+        joblib.dump(self.model, 'model.joblib')
         print("saved model.joblib locally")
+
+        # Implement here
+        self.__upload_model_to_gcp()
+        print(f"uploaded model.joblib to gcp cloud storage under \n => {STORAGE_LOCATION}")
+
+    def __upload_model_to_gcp(self):
         client = storage.Client()
         bucket = client.bucket(BUCKET_NAME)
-        storage_location = f"models/{MODEL_NAME}/{MODEL_VERSION}/{local_model_name}"
-        blob = bucket.blob(storage_location)
-        blob.upload_from_filename(local_model_name)
-        print("uploaded model.joblib to gcp cloud storage under \n => {}".format(storage_location))
-
-    def save_model_locally(self):
-        """Save the model into a .joblib format"""
-        joblib.dump(self.pipeline, 'model.joblib')
-        print(colored("model.joblib saved locally", "green"))
+        blob = bucket.blob(STORAGE_LOCATION)
+        blob.upload_from_filename('model.joblib')
 
 if __name__ == "__main__":
     X, y = load_result(reload_midi=True)
+    print("Loading done")
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.01, random_state=2)
     trainer = Trainer(X=X_train, y=y_train)
     trainer.preprocess()
     trainer.train_model()
-    trainer.save_model_to_gcp()
+    trainer.save_model()

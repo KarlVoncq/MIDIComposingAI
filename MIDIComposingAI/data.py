@@ -21,7 +21,7 @@ def get_data_from_gcp(**kwargs):
     with fs.open(f'{BUCKET_NAME}/{blobs[0].name}') as f:
         file = joblib.load(f)
     X, y = create_simple_dataset(file)
-    for blob in blobs[1:]:
+    for blob in blobs[1:3000]:
         try:
             with fs.open(f'{BUCKET_NAME}/{blob.name}') as f:
                 file = joblib.load(f)
