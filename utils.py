@@ -17,7 +17,7 @@ def plot_piano_roll_librosa(pm, name_fig, fs=50):
     plt.title(f"{name_fig}", fontsize="x-large")
     plt.xlabel("Time (s)", fontsize="x-large")
     plt.ylabel("Pitch", fontsize="x-large")
-    st.pyplot(fig)
+    return fig
 
 def reshape_piano_roll(piano_roll, size=500):
     """
