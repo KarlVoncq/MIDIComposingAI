@@ -75,10 +75,11 @@ X = pm.get_piano_roll(fs=50)
 def predict(X):
 
     X = preprocess(X)
-    tree = joblib.load('Model/API_tree.joblib')
-    pred = tree.predict(X)
-    print(f'SHAPE PRED : {pred.shape}')
-    return pred
+    url = "https://europe-west1-wagon-bootcamp-328620.cloudfunctions.net/midi_composing_api"
+
+    acc = {"acc_to_predict":X.tolist()}
+    response = requests.post(url, json=acc)
+    return np.asarray(response['result'])
 
 pred = predict(X)
 
