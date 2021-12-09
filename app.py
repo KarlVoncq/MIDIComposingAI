@@ -45,31 +45,6 @@ if uploaded_file:
     pretty_midi_to_audio(pm)
 
 
-# # Plot user MIDI file
-# plot_piano_roll_librosa(pm, "Your MIDI file")
-
-# # Listen user MIDI file
-# st.audio(bytes_data, format='wav', start_time=0)
-
-# form = st.form(key='my-form')
-
-# piano_roll = pretty_midi.PrettyMIDI(uploaded_file).get_piano_roll(fs=50)
-
-# chords = adding_chords_info('../raw_data/chords_midi.csv', piano_roll)
-
-# preproc_file = piano_roll.reshape((piano_roll.shape[0], -1))
-# preproc_file = np.concatenate((chords, preproc_file), axis=1, dtype=np.int8)
-
-# def predict():
-
-#     # Call API
-#     predicted_melody = requests(method='POST', url=url, file=preproc_file)
-
-#     predicted_melody = assembled_target_to_melody(predicted_melody)
-#     plot_piano_roll_librosa(piano_roll_to_pretty_midi(predicted_melody, fs=50), "Your brand new melody !")
-
-#     # Listen audio
-#     st.audio(piano_roll_to_pretty_midi(predicted_melody, fs=50))
 X = pm.get_piano_roll(fs=50)
 
 def predict(X):
@@ -79,7 +54,7 @@ def predict(X):
 
     acc = {"acc_to_predict":X.tolist()}
     response = requests.post(url, json=acc)
-    return np.asarray(response['result'])
+    return np.asarray(response.json()['result'])
 
 pred = predict(X)
 
@@ -105,5 +80,5 @@ def get_binary_file_downloader_html(bin_file, file_label='File'):
     href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(bin_file)}">Download {file_label}</a>'
     return href
 
-pm_mel.write('pm_mel.mid')
-st.markdown(get_binary_file_downloader_html('pm_mel.mid', 'Text Download'), unsafe_allow_html=True)
+pm_mel.write('AI_mel.mid')
+st.markdown(get_binary_file_downloader_html('pm_mel.mid', 'AI_melody.mid'), unsafe_allow_html=True)
