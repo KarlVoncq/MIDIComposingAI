@@ -3,13 +3,11 @@ from utils import plot_piano_roll_librosa, piano_roll_to_pretty_midi
 import pretty_midi
 import requests
 import numpy as np
-import io
-from scipy.io import wavfile
 import base64
 import os
 from preprocessing import preprocess, reshape_piano_roll
 from postprocessing import postprocess
-from midi2audio import FluidSynth
+import streamlit.components.v1 as components
 
 @st.cache(allow_output_mutation=True)
 def load_session():
@@ -17,10 +15,10 @@ def load_session():
 
 st.markdown('V. 0.5')
 uploaded_file = st.file_uploader("Choose a file", type=['mid'])
-fs = FluidSynth()
 st.markdown('''
 Let us  find you a melody for your MIDI file !
 ''')
+
 
 pm = pretty_midi.PrettyMIDI(uploaded_file)
 # pretty_midi.PrettyMIDI(uploaded_file).write('new.mid')
@@ -39,9 +37,27 @@ pm = pretty_midi.PrettyMIDI(uploaded_file)
 
 #     st.audio(virtualfile)
 
+def get_binary_file_downloader_html(bin_file, file_label='File'):
+    with open(bin_file, 'rb') as f:
+        data = f.read()
+    bin_str = base64.b64encode(data).decode()
+    href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(bin_file)}">Download {file_label}</a>'
+    return href
+
 if uploaded_file:
     plot_piano_roll_librosa(pm, 'Your file')
-    # pretty_midi_to_audio(pm)
+
+pm.write('acc.mid')
+link_tag_acc = get_binary_file_downloader_html('acc.mid', 'acc.mid')
+
+file_url_acc = link_tag_acc.split('href="')[1].split('" download=')[0]
+
+html_string_acc = f'''
+    <midi-player src="{file_url_acc}"></midi-player>
+    <midi-visualizer type="piano-roll" id="myVisualizer"></midi-visualizer>
+    <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.4.0"></script>
+'''
+components.html(html_string_acc)
 
 
 X = pm.get_piano_roll(fs=50)
@@ -65,19 +81,35 @@ pm_mel = piano_roll_to_pretty_midi(mel, fs=50)
 pm_full_music = piano_roll_to_pretty_midi(full_music, fs=50)
 
 plot_piano_roll_librosa(pm_mel, 'Melody')
-# pretty_midi_to_audio(pm_mel)
+
+pm_mel.write('mel.mid')
+link_tag_mel = get_binary_file_downloader_html('mel.mid', 'mel.mid')
+
+file_url_mel = link_tag_mel.split('href="')[1].split('" download=')[0]
+
+html_string_mel = f'''
+    <midi-player src="{file_url_mel}"></midi-player>
+    <midi-visualizer type="piano-roll" id="myVisualizer"></midi-visualizer>
+    <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.4.0"></script>
+'''
+components.html(html_string_mel)
+st.markdown(link_tag_mel, unsafe_allow_html=True)
 
 plot_piano_roll_librosa(pm_full_music, 'Full music')
-# pretty_midi_to_audio(pm_full_music)
+
+
+pm_full_music.write('full.mid')
+link_tag_full = get_binary_file_downloader_html('full.mid', 'full.mid')
+
+file_url_full = link_tag_full.split('href="')[1].split('" download=')[0]
+
+html_string_full = f'''
+    <midi-player src="{file_url_full}"></midi-player>
+    <midi-visualizer type="piano-roll" id="myVisualizer"></midi-visualizer>
+    <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.4.0"></script>
+'''
+components.html(html_string_full)
 
 st.title('Download your melody !')
 
-def get_binary_file_downloader_html(bin_file, file_label='File'):
-    with open(bin_file, 'rb') as f:
-        data = f.read()
-    bin_str = base64.b64encode(data).decode()
-    href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(bin_file)}">Download {file_label}</a>'
-    return href
-
-pm_mel.write('AI_mel.mid')
-st.markdown(get_binary_file_downloader_html('AI_mel.mid', 'AI_melody.mid'), unsafe_allow_html=True)
+st.markdown(link_tag_full, unsafe_allow_html=True)
