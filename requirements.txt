@@ -12,3 +12,4 @@ pretty_midi
 sklearn
 joblib
 fluidsynth
+uvicorn
