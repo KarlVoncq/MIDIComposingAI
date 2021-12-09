@@ -10,3 +10,5 @@ soundfile
 pretty_midi
 pyFluidsynth
 fluidsynth
+sklearn
+joblib

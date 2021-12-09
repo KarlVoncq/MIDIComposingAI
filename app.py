@@ -3,7 +3,7 @@ from matplotlib.pyplot import plot
 from numpy.core.numeric import full
 import streamlit as st
 from requests.api import request
-from utils import plot_piano_roll_librosa
+from utils import plot_piano_roll_librosa, piano_roll_to_pretty_midi
 import pretty_midi
 import requests
 import numpy as np
@@ -16,24 +16,15 @@ from scipy.io import wavfile
 from midi2audio import FluidSynth
 import base64
 import os
+from preprocessing import preprocess, reshape_piano_roll
+from postprocessing import postprocess
 
 @st.cache(allow_output_mutation=True)
 def load_session():
     return requests.Session()
 
-st.title('Downloader')
-
-def get_binary_file_downloader_html(bin_file, file_label='File'):
-    with open(bin_file, 'rb') as f:
-        data = f.read()
-    bin_str = base64.b64encode(data).decode()
-    href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(bin_file)}">Download {file_label}</a>'
-    return href
-
 
 uploaded_file = st.file_uploader("Choose a file", type=['mid'])
-
-# st.markdown(get_binary_file_downloader_html(uploaded_file, 'Text Download'), unsafe_allow_html=True) 
 
 st.markdown('''
 Let us  find you a melody for your MIDI file !
@@ -41,7 +32,6 @@ Let us  find you a melody for your MIDI file !
 
 pm = pretty_midi.PrettyMIDI(uploaded_file)
 # pretty_midi.PrettyMIDI(uploaded_file).write('new.mid')
-plot_piano_roll_librosa(pm, 'Your file')
 
 
 def pretty_midi_to_audio(pm):
@@ -57,11 +47,10 @@ def pretty_midi_to_audio(pm):
 
     st.audio(virtualfile)
 
-pretty_midi_to_audio(pm)
+if uploaded_file:
+    plot_piano_roll_librosa(pm, 'Your file')
+    pretty_midi_to_audio(pm)
 
-# st.audio('tes', format='audio/mp3', start_time=0)
-# # pm = pretty_midi.PrettyMIDI('file.mid')
-# # url = 'URL/TO/API'
 
 # # Plot user MIDI file
 # plot_piano_roll_librosa(pm, "Your MIDI file")
@@ -88,32 +77,39 @@ pretty_midi_to_audio(pm)
 
 #     # Listen audio
 #     st.audio(piano_roll_to_pretty_midi(predicted_melody, fs=50))
+X = pm.get_piano_roll(fs=50)
 
+def predict(X):
 
+    X = preprocess(X)
+    tree = joblib.load('Model/models_MIDIComposingAI_2_model.joblib')
+    pred = tree.predict(X)
+    print(f'SHAPE PRED : {pred.shape}')
+    return pred
 
+pred = predict(X)
 
-# predicted_melody = form.form_submit_button(label='Give me some melody', on_click=predict())
-predicted_melody = pretty_midi.PrettyMIDI('test.mid')
-# # TODO : plot predicted melody, listen predicted melody, download predicted_melody, plot acc + melody, listen acc + melody, download acc + melody
+if X.shape[-1] != 500:
+        X = reshape_piano_roll(X)
 
-# full_music = assemblate_accompaniment_melody(piano_roll, predicted_melody)
+mel, full_music = postprocess(X, pred[0])
+pm_mel = piano_roll_to_pretty_midi(mel, fs=50)
+pm_full_music = piano_roll_to_pretty_midi(full_music, fs=50)
 
-# # full_music = piano_roll_to_pretty_midi(full_music).write('full_music.mid')
+plot_piano_roll_librosa(pm_mel, 'Melody')
+pretty_midi_to_audio(pm_mel)
 
+plot_piano_roll_librosa(pm_full_music, 'Full music')
+pretty_midi_to_audio(pm_full_music)
 
+st.title('Download your melody !')
 
-plot_piano_roll_librosa(predicted_melody, fs=50, name_fig='YOur music with anew melody !')
-# st.audio(full_music)
+def get_binary_file_downloader_html(bin_file, file_label='File'):
+    with open(bin_file, 'rb') as f:
+        data = f.read()
+    bin_str = base64.b64encode(data).decode()
+    href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(bin_file)}">Download {file_label}</a>'
+    return href
 
-import streamlit.components.v1 as components
-
-html_script = f"""<script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.4.0"></script>
-
-    <midi-player
-    src={uploaded_file}>
-    </midi-player>
-"""
-
-components.html(html_script)
-
-# st.header("File Download - A Workaround for small data")
+pm_mel.write('pm_mel.mid')
+st.markdown(get_binary_file_downloader_html('pm_mel.mid', 'Text Download'), unsafe_allow_html=True)

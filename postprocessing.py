@@ -36,3 +36,11 @@ def assemblate_accompaniment_melody(accompaniment, melody):
     full_musics = accompaniment + melody
 
     return full_musics
+
+def postprocess(acc, pred):
+
+    mel = assembled_target_to_melody(pred)
+    print(f'SHAPE : {mel.shape}')
+    full_music = assemblate_accompaniment_melody(acc, mel)
+
+    return mel, full_music
