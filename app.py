@@ -23,26 +23,26 @@ st.markdown('''
 Let us  find you a melody for your MIDI file !
 ''')
 
-pm = pretty_midi.PrettyMIDI(uploaded_file)
+pm = pretty_midi.PrettyMIDI(uploaded_file, initial_tempo=90)
 # pretty_midi.PrettyMIDI(uploaded_file).write('new.mid')
 
 
-# def pretty_midi_to_audio(pm):
-with st.spinner(f"Transcribing to FluidSynth"):
-    midi_data = pm
-    audio_data = midi_data.fluidsynth()
-    audio_data = np.int16(
-        audio_data / np.max(np.abs(audio_data)) * 32767 * 0.9
-    )  # -- Normalize for 16 bit audio https://github.com/jkanner/streamlit-audio/blob/main/helper.py
+def pretty_midi_to_audio(pm):
+    with st.spinner(f"Transcribing to FluidSynth"):
+        midi_data = pm
+        audio_data = midi_data.fluidsynth()
+        audio_data = np.int16(
+            audio_data / np.max(np.abs(audio_data)) * 32767 * 0.9
+        )  # -- Normalize for 16 bit audio https://github.com/jkanner/streamlit-audio/blob/main/helper.py
 
-    virtualfile = io.BytesIO()
-    wavfile.write(virtualfile, 44100, audio_data)
+        virtualfile = io.BytesIO()
+        wavfile.write(virtualfile, 44100, audio_data)
 
-st.audio(virtualfile)
+    st.audio(virtualfile)
 
 if uploaded_file:
     plot_piano_roll_librosa(pm, 'Your file')
-    # pretty_midi_to_audio(pm)
+    pretty_midi_to_audio(pm)
 
 
 # # Plot user MIDI file
@@ -75,7 +75,7 @@ X = pm.get_piano_roll(fs=50)
 def predict(X):
 
     X = preprocess(X)
-    tree = joblib.load('Model/API_tree.joblib')
+    tree = joblib.load('Model/models_MIDIComposingAI_2_model.joblib')
     pred = tree.predict(X)
     print(f'SHAPE PRED : {pred.shape}')
     return pred
@@ -90,10 +90,10 @@ pm_mel = piano_roll_to_pretty_midi(mel, fs=50)
 pm_full_music = piano_roll_to_pretty_midi(full_music, fs=50)
 
 plot_piano_roll_librosa(pm_mel, 'Melody')
-# pretty_midi_to_audio(pm_mel)
+pretty_midi_to_audio(pm_mel)
 
 plot_piano_roll_librosa(pm_full_music, 'Full music')
-# pretty_midi_to_audio(pm_full_music)
+pretty_midi_to_audio(pm_full_music)
 
 st.title('Download your melody !')
 
