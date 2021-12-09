@@ -9,16 +9,15 @@ import base64
 import os
 from preprocessing import preprocess, reshape_piano_roll
 from postprocessing import postprocess
-from fluidsynth import Synth
+from midi2audio import FluidSynth
 
 @st.cache(allow_output_mutation=True)
 def load_session():
     return requests.Session()
 
 st.markdown('V. 0.5')
-fs = Synth()
 uploaded_file = st.file_uploader("Choose a file", type=['mid'])
-
+fs = FluidSynth()
 st.markdown('''
 Let us  find you a melody for your MIDI file !
 ''')
