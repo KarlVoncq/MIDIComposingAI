@@ -11,3 +11,4 @@ pyFluidsynth==1.3.0
 pretty_midi
 sklearn
 joblib
+fluidsynth
