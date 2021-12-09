@@ -10,12 +10,13 @@ import base64
 import os
 from preprocessing import preprocess, reshape_piano_roll
 from postprocessing import postprocess
+from pretty_midi import fluidsynth
 
 @st.cache(allow_output_mutation=True)
 def load_session():
     return requests.Session()
 
-st.markdown('V. 0.1')
+st.markdown('V. 0.2')
 
 uploaded_file = st.file_uploader("Choose a file", type=['mid'])
 
