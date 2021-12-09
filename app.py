@@ -1,19 +1,11 @@
-from librosa.core.audio import resample
-from matplotlib.pyplot import plot
-from numpy.core.numeric import full
 import streamlit as st
-from requests.api import request
 from utils import plot_piano_roll_librosa, piano_roll_to_pretty_midi
 import pretty_midi
 import requests
 import numpy as np
 import joblib
-from preprocessing import  adding_chords_info
-from postprocessing import assembled_target_to_melody, assemblate_accompaniment_melody
-from midi2audio import FluidSynth
 import io
 from scipy.io import wavfile
-from midi2audio import FluidSynth
 import base64
 import os
 from preprocessing import preprocess, reshape_piano_roll
@@ -23,6 +15,7 @@ from postprocessing import postprocess
 def load_session():
     return requests.Session()
 
+st.markdown('V. 0.1')
 
 uploaded_file = st.file_uploader("Choose a file", type=['mid'])
 
@@ -97,10 +90,10 @@ pm_mel = piano_roll_to_pretty_midi(mel, fs=50)
 pm_full_music = piano_roll_to_pretty_midi(full_music, fs=50)
 
 plot_piano_roll_librosa(pm_mel, 'Melody')
-pretty_midi_to_audio(pm_mel)
+# pretty_midi_to_audio(pm_mel)
 
 plot_piano_roll_librosa(pm_full_music, 'Full music')
-pretty_midi_to_audio(pm_full_music)
+# pretty_midi_to_audio(pm_full_music)
 
 st.title('Download your melody !')
 
