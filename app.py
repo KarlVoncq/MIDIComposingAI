@@ -9,14 +9,14 @@ import base64
 import os
 from preprocessing import preprocess, reshape_piano_roll
 from postprocessing import postprocess
-import fluidsynth
+from fluidsynth import Synth
 
 @st.cache(allow_output_mutation=True)
 def load_session():
     return requests.Session()
 
 st.markdown('V. 0.5')
-fs = fluidsynth.Synth()
+fs = Synth()
 uploaded_file = st.file_uploader("Choose a file", type=['mid'])
 
 st.markdown('''
