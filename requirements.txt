@@ -8,6 +8,7 @@ scipy
 pandas
 soundfile
 pyFluidsynth
+fluidsynth
 pretty_midi
 sklearn
 joblib
