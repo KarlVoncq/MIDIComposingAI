@@ -43,23 +43,21 @@ pm = pretty_midi.PrettyMIDI(uploaded_file)
 # pretty_midi.PrettyMIDI(uploaded_file).write('new.mid')
 plot_piano_roll_librosa(pm, 'Your file')
 
-fs = FluidSynth()
 
-# fs.midi_to_audio('new.mid', 'new.wav')
+def pretty_midi_to_audio(pm):
+    with st.spinner(f"Transcribing to FluidSynth"):
+        midi_data = pm
+        audio_data = midi_data.fluidsynth()
+        audio_data = np.int16(
+            audio_data / np.max(np.abs(audio_data)) * 32767 * 0.9
+        )  # -- Normalize for 16 bit audio https://github.com/jkanner/streamlit-audio/blob/main/helper.py
 
-st.audio('new.wav')
+        virtualfile = io.BytesIO()
+        wavfile.write(virtualfile, 44100, audio_data)
 
-with st.spinner(f"Transcribing to FluidSynth"):
-    midi_data = pm
-    audio_data = midi_data.fluidsynth()
-    audio_data = np.int16(
-        audio_data / np.max(np.abs(audio_data)) * 32767 * 0.9
-    )  # -- Normalize for 16 bit audio https://github.com/jkanner/streamlit-audio/blob/main/helper.py
+    st.audio(virtualfile)
 
-    virtualfile = io.BytesIO()
-    wavfile.write(virtualfile, 44100, audio_data)
-
-st.audio(virtualfile)
+pretty_midi_to_audio(pm)
 
 # st.audio('tes', format='audio/mp3', start_time=0)
 # # pm = pretty_midi.PrettyMIDI('file.mid')
