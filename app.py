@@ -3,27 +3,27 @@ from utils import plot_piano_roll_librosa, piano_roll_to_pretty_midi
 import pretty_midi
 import requests
 import numpy as np
-import joblib
 import io
 from scipy.io import wavfile
 import base64
 import os
 from preprocessing import preprocess, reshape_piano_roll
 from postprocessing import postprocess
+import fluidsynth
 
 @st.cache(allow_output_mutation=True)
 def load_session():
     return requests.Session()
 
-st.markdown('V. 0.4')
-
+st.markdown('V. 0.5')
+fs = fluidsynth.Synth()
 uploaded_file = st.file_uploader("Choose a file", type=['mid'])
 
 st.markdown('''
 Let us  find you a melody for your MIDI file !
 ''')
 
-pm = pretty_midi.PrettyMIDI(uploaded_file, initial_tempo=90)
+pm = pretty_midi.PrettyMIDI(uploaded_file)
 # pretty_midi.PrettyMIDI(uploaded_file).write('new.mid')
 
 
@@ -47,6 +47,9 @@ if uploaded_file:
 
 X = pm.get_piano_roll(fs=50)
 
+if X.shape[-1] != 500:
+        X = reshape_piano_roll(X)
+
 def predict(X):
 
     X = preprocess(X)
@@ -57,9 +60,6 @@ def predict(X):
     return np.asarray(response.json()['result'])
 
 pred = predict(X)
-
-if X.shape[-1] != 500:
-        X = reshape_piano_roll(X)
 
 mel, full_music = postprocess(X, pred[0])
 pm_mel = piano_roll_to_pretty_midi(mel, fs=50)
