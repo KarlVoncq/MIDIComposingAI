@@ -82,7 +82,7 @@ X = pm.get_piano_roll(fs=50)
 def predict(X):
 
     X = preprocess(X)
-    tree = joblib.load('Model/models_MIDIComposingAI_2_model.joblib')
+    tree = joblib.load('Model/API_tree.joblib')
     pred = tree.predict(X)
     print(f'SHAPE PRED : {pred.shape}')
     return pred
