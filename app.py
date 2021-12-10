@@ -101,7 +101,6 @@ if uploaded_file:
                 pm_full_music = piano_roll_to_pretty_midi(full_music, fs=50)
                 with col2:
                     play_music(pm_mel, 'new_melody.mid', 'piano-roll')
-                    fig_mel = plot_piano_roll_librosa(pm_mel, 'Your uploaded')
                     link_tag_mel = get_binary_file_downloader_html('new_melody.mid', 'new_melody.mid')
                     st.download_button('Download your new melody', link_tag_mel)
 
