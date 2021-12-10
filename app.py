@@ -58,7 +58,7 @@ def play_music(pm, file_name, type):
         <midi-visualizer type={type} id="myVisualizer"></midi-visualizer>
         <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.4.0"></script>
     '''
-    components.html(html_string)
+    components.html(html_string, height=300)
 
 col1, col2, col3 = st.columns(3)
 
@@ -96,7 +96,7 @@ if uploaded_file:
 
                 with col3:
                     play_music(pm_full_music, 'full_music.mid', 'piano-roll' )
-                    link_tag_full = get_binary_file_downloader_html('full.mid', 'full.mid')
+                    link_tag_full = get_binary_file_downloader_html('full_music.mid', 'full_music.mid')
                     st.download_button('Download full music', link_tag_full)
             else:
                 st.markdown("You need to upload a file first ! :)")
