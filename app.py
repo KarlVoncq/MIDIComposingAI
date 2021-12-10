@@ -69,7 +69,7 @@ def play_music(pm, file_name, type):
         ></midi-visualizer>
         <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.4.0"></script>
     '''
-    components.html(html_string, height=300)
+    components.html(html_string, height=400)
 
 col1, col2, col3 = st.columns(3)
 
@@ -101,11 +101,13 @@ if uploaded_file:
                 pm_full_music = piano_roll_to_pretty_midi(full_music, fs=50)
                 with col2:
                     play_music(pm_mel, 'new_melody.mid', 'piano-roll')
+                    pm_mel.write('new_melody.mid')
                     link_tag_mel = get_binary_file_downloader_html('new_melody.mid', 'new_melody.mid')
                     st.download_button('Download your new melody', link_tag_mel)
 
                 with col3:
                     play_music(pm_full_music, 'full_music.mid', 'piano-roll' )
+                    pm_full_music.write('full_music.mid')
                     link_tag_full = get_binary_file_downloader_html('full_music.mid', 'full_music.mid')
                     st.download_button('Download full music', link_tag_full)
             else:
