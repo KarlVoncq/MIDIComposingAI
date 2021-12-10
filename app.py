@@ -8,6 +8,7 @@ import os
 from preprocessing import preprocess, reshape_piano_roll
 from postprocessing import postprocess
 import streamlit.components.v1 as components
+import time
 
 @st.cache(allow_output_mutation=True)
 def load_session():
@@ -54,8 +55,18 @@ def play_music(pm, file_name, type):
     html_string = f'''
         <midi-player src="{file_url}"
         sound-font visualizer="#myVisualizer"
+        style="width: 360px;"
         ></midi-player>
-        <midi-visualizer type={type} id="myVisualizer"></midi-visualizer>
+        <midi-visualizer type={type} id="myVisualizer"
+        style="
+        background-color: #F2F5F6;
+        border-radius: 25px;
+        padding-left: 25px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        margin-top: 15px;
+        width: 340px;"
+        ></midi-visualizer>
         <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.4.0"></script>
     '''
     components.html(html_string, height=300)
@@ -71,7 +82,6 @@ def predict(X):
     response = requests.post(url, json=acc)
     return np.asarray(response.json()['result'])
 
-
 if uploaded_file:
     pm_user = pretty_midi.PrettyMIDI(uploaded_file)
     with col1:
@@ -83,8 +93,9 @@ if uploaded_file:
 
                 if X.shape[-1] != 500:
                         X = reshape_piano_roll(X)
-
-                pred = predict(X)
+                with col2:
+                    with st.spinner('Wait for your melody...'):
+                        pred = predict(X)
                 mel, full_music = postprocess(X, pred[0])
                 pm_mel = piano_roll_to_pretty_midi(mel, fs=50)
                 pm_full_music = piano_roll_to_pretty_midi(full_music, fs=50)
