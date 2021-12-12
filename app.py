@@ -103,12 +103,11 @@ if uploaded_file:
                     play_music(pm_mel, 'new_melody.mid', 'piano-roll')
                     pm_mel.write('new_melody.mid')
                     link_tag_mel = get_binary_file_downloader_html('new_melody.mid', 'new_melody.mid')
-                    st.download_button('Download your new melody', link_tag_mel)
+                    st.markdown(link_tag_mel, unsafe_allow_html=True)
 
                 with col3:
                     play_music(pm_full_music, 'full_music.mid', 'piano-roll' )
-                    pm_full_music.write('full_music.mid')
                     link_tag_full = get_binary_file_downloader_html('full_music.mid', 'full_music.mid')
-                    st.download_button('Download full music', link_tag_full)
+                    st.markdown(link_tag_full, unsafe_allow_html=True)
             else:
                 st.markdown("You need to upload a file first ! :)")
