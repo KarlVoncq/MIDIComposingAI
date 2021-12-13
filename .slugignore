@@ -7,3 +7,7 @@
 /app/test.py
 /app/midi_to_audio.py
 /app/__pycache__
+notebooks
+raw_data
+PredVSTrue
+MIDIComposingAI
