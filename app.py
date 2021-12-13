@@ -74,13 +74,22 @@ def play_music(pm, file_name, type):
 col1, col2, col3 = st.columns(3)
 
 def predict(X):
-
-    X = preprocess(X)
+    """
+    Return the generated melody from the model
+    Args:
+        X, a list or an array
+    """
     url = "https://europe-west1-wagon-bootcamp-328620.cloudfunctions.net/midi_composing_api"
 
-    acc = {"acc_to_predict":X.tolist()}
-    response = requests.post(url, json=acc)
-    return np.asarray(response.json()['result'])
+    X = preprocess(X)
+
+    response = []
+    for sample in X:
+        sample = sample.reshape((1, -1))
+        acc = {"acc_to_predict":sample.tolist()}
+        response_API = requests.post(url, json=acc)
+        response.append(response_API.json()['result'])
+    return np.asarray(response)
 
 if uploaded_file:
     pm_user = pretty_midi.PrettyMIDI(uploaded_file)
@@ -88,26 +97,22 @@ if uploaded_file:
         play_music(pm_user, 'your_music.mid', 'piano-roll')
         if st.button("Give me some melody !"):
 
-            if uploaded_file:
-                X = pm_user.get_piano_roll(fs=50)
+            X = pm_user.get_piano_roll(fs=50)
 
-                if X.shape[-1] != 500:
-                        X = reshape_piano_roll(X)
-                with col2:
-                    with st.spinner('Wait for your melody...'):
-                        pred = predict(X)
-                mel, full_music = postprocess(X, pred[0])
-                pm_mel = piano_roll_to_pretty_midi(mel, fs=50)
-                pm_full_music = piano_roll_to_pretty_midi(full_music, fs=50)
-                with col2:
-                    play_music(pm_mel, 'new_melody.mid', 'piano-roll')
-                    pm_mel.write('new_melody.mid')
-                    link_tag_mel = get_binary_file_downloader_html('new_melody.mid', 'new_melody.mid')
-                    st.markdown(link_tag_mel, unsafe_allow_html=True)
+            with col2:
+                with st.spinner('Wait for your melody...'):
+                    pred = predict(X)
+            mel, full_music = postprocess(X, pred)
 
-                with col3:
-                    play_music(pm_full_music, 'full_music.mid', 'piano-roll' )
-                    link_tag_full = get_binary_file_downloader_html('full_music.mid', 'full_music.mid')
-                    st.markdown(link_tag_full, unsafe_allow_html=True)
-            else:
-                st.markdown("You need to upload a file first ! :)")
+            pm_mel = piano_roll_to_pretty_midi(mel, fs=50)
+            pm_full_music = piano_roll_to_pretty_midi(full_music, fs=50)
+            with col2:
+                play_music(pm_mel, 'new_melody.mid', 'piano-roll')
+                pm_mel.write('new_melody.mid')
+                link_tag_mel = get_binary_file_downloader_html('new_melody.mid', 'new_melody.mid')
+                st.markdown(link_tag_mel, unsafe_allow_html=True)
+
+            with col3:
+                play_music(pm_full_music, 'full_music.mid', 'piano-roll' )
+                link_tag_full = get_binary_file_downloader_html('full_music.mid', 'full_music.mid')
+                st.markdown(link_tag_full, unsafe_allow_html=True)

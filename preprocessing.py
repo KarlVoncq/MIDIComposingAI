@@ -9,29 +9,6 @@ def get_unique_pitches_one_oct(acc):
      
     return list(set(pitches))
 
-def reshape_piano_roll(piano_roll, size=500):
-    """
-    Reshape the piano roll to match into the required shape for predictions
-    """
-    if piano_roll.shape[-1] < size:
-        
-        zeros_array = np.zeros((128, size - piano_roll.shape[-1]))
-        return np.concatenate((piano_roll, zeros_array), axis=1)
-    
-    if piano_roll.shape[-1] > size:
-        
-        piano_rolls =  np.split(piano_roll, [500], axis=1)
-        
-        while piano_rolls[-1].shape[-1] > 500:
-            
-            last_split = np.split(piano_rolls[-1], [500], axis=1)
-            piano_rolls[-1] = last_split[0]
-            piano_rolls.append(last_split[-1])
-        
-        # while np.array(piano_rolls[-1]).shape > size:
-        #     piano_rolls.append(np.split(piano_roll[-1], [500], axis=1))
-        return piano_rolls
-
 def adding_chords_info(dataset, verbose=0):
 
     chords_df = pd.read_csv('Data/chords_midi.csv', sep=";")
@@ -67,29 +44,42 @@ def reshape_piano_roll(piano_roll, size=500):
     
     if piano_roll.shape[-1] > size:
         
-        piano_rolls =  np.split(piano_roll, [500], axis=1)
+        # We create a first split (array of shape (128, 500), array of shape ?)
+        piano_rolls = np.split(piano_roll, [size], axis=1)
         
-        while piano_rolls[-1].shape[-1] > 500:
-            
-            last_split = np.split(piano_rolls[-1], [500], axis=1)
+        while piano_rolls[-1].shape[-1] > size:
+            # We continue the split until every split is <= size
+            last_split = np.split(piano_rolls[-1], [size], axis=1)
             piano_rolls[-1] = last_split[0]
             piano_rolls.append(last_split[-1])
         
-        # while np.array(piano_rolls[-1]).shape > size:
-        #     piano_rolls.append(np.split(piano_roll[-1], [500], axis=1))
-        return piano_rolls
+        if piano_rolls[-1].shape[-1] < size:
+            # We reshape the last split if it's inferior to the size argument
+            zeros_array = np.zeros((128, size - piano_rolls[-1].shape[-1]))
+            piano_rolls[-1] = np.concatenate((piano_rolls[-1], zeros_array), axis=1)
+        
+        return np.asarray(piano_rolls)
 
 def preprocess(X):
-    
+    """
+    Preprocessing X to put it as an input for our model
+    """
+
     if X.shape[-1] != 500:
+        # First we make sure the shape fit (50 fs, 10s)
         X = reshape_piano_roll(X)
-        
+
+    # Then we add a dim for adding chords
     if len(X.shape) < 3:
         X = X.reshape((1, X.shape[0], X.shape[1]))
 
+    # We add chords
     chord = adding_chords_info(X)
 
+    # We flattened the accompaniment
     X = X.reshape((X.shape[0], -1))
+
+    # We merge the two
     X = np.concatenate((chord, X), axis=1)
 
     return X
