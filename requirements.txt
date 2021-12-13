@@ -1,0 +1,12 @@
+setuptools
+librosa
+matplotlib
+numpy
+streamlit
+midi2audio
+scipy
+pandas
+soundfile
+pretty_midi
+sklearn
+joblib

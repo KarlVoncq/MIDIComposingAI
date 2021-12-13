@@ -1,0 +1,10 @@
+test.py
+Model/models_MIDIComposingAI_2_model.joblib
+Model/models_MIDIComposingAI_2_model.joblib:Zone.Identifier
+*.mid
+*.mp3
+*.wav
+*.joblib
+MANIFEST.in
+Dockerfile
+__pycache__
