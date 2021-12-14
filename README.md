@@ -1,5 +1,6 @@
 # What is this repo ?
 It's both a repo for a Data Science project and for the linked Streamlit app
+https://midi-composing-ai.herokuapp.com/
 
 # Project
 - I wanted to make music with my computer so we took MIDI files and processed to make them an input for a ML model.
