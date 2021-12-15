@@ -1,7 +1,5 @@
 import numpy as np
-from numpy.lib.utils import safe_eval
 from preprocessing import reshape_piano_roll
-
 
 def melody_to_piano_roll(pitches, velocities):
     """
