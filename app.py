@@ -6,7 +6,7 @@ import numpy as np
 import base64
 import os
 from MIDIComposingAI.preprocessing import preprocess
-from postprocessing import postprocess
+from MIDIComposingAI.postprocessing import postprocess
 import streamlit.components.v1 as components
 
 @st.cache(allow_output_mutation=True)
