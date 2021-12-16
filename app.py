@@ -1,14 +1,13 @@
 import streamlit as st
-from utils import plot_piano_roll_librosa, piano_roll_to_pretty_midi
+from MIDIComposingAI.utils import piano_roll_to_pretty_midi
 import pretty_midi
 import requests
 import numpy as np
 import base64
 import os
-from preprocessing import preprocess, reshape_piano_roll
+from MIDIComposingAI.preprocessing import preprocess
 from postprocessing import postprocess
 import streamlit.components.v1 as components
-import time
 
 @st.cache(allow_output_mutation=True)
 def load_session():
@@ -29,6 +28,7 @@ h1 {
     color: #064663;
     }
 """
+
 st.write(f'<style>{CSS}</style>', unsafe_allow_html=True)
 
 st.title('MIDICOmposingAI')

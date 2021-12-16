@@ -1,12 +1,26 @@
-#  This script is to convert piano roll to pretty_midi object, with extra input on note onsets.
-#  Consecutive pitches that are the same are no longer "assumed" to be held as a long note.
-#
-#  Original function comes from pypianoroll: 
-#  https://github.com/salu133445/pypianoroll/blob/4d87eba9fc3dca0b353c85e303caf0d25ccd2e29/pypianoroll/multitrack.py#L904
-
 import pretty_midi
 import numpy as np
 
+def reshape_piano_roll(piano_roll, size=500):
+    """
+    Reshape the piano roll to match into the required shape for predictions
+    """
+    if piano_roll.shape[-1] < size:
+        
+        zeros_array = np.zeros((128, size - piano_roll.shape[-1]))
+        return np.concatenate((piano_roll, zeros_array), axis=1)
+    
+    if piano_roll.shape[-1] > size:
+        
+        piano_rolls =  np.split(piano_roll, [500], axis=1)
+        
+        while piano_rolls[-1].shape[-1] > 500:
+            
+            last_split = np.split(piano_rolls[-1], [500], axis=1)
+            piano_rolls[-1] = last_split[0]
+            piano_rolls.append(last_split[-1])
+
+        return piano_rolls
 
 def piano_roll_to_pretty_midi(piano_roll, fs=100, program=0):
     '''Convert a Piano Roll array into a PrettyMidi object
@@ -26,6 +40,7 @@ def piano_roll_to_pretty_midi(piano_roll, fs=100, program=0):
         A pretty_midi.PrettyMIDI class instance describing
         the piano roll.
     '''
+
     notes, frames = piano_roll.shape
     pm = pretty_midi.PrettyMIDI()
     instrument = pretty_midi.Instrument(program=program)
