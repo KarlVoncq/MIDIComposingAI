@@ -1,6 +1,6 @@
 test.py
-Model/models_MIDIComposingAI_2_model.joblib
-Model/models_MIDIComposingAI_2_model.joblib:Zone.Identifier
+Model
+Models
 *.mid
 *.mp3
 *.wav
@@ -8,3 +8,7 @@ Model/models_MIDIComposingAI_2_model.joblib:Zone.Identifier
 MANIFEST.in
 Dockerfile
 __pycache__
+PredVSTrue
+notebooks
+raw_data
+*.ipynb_checkpoints
