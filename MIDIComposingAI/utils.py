@@ -4,11 +4,26 @@ import numpy as np
 def reshape_piano_roll(piano_roll, size=500):
     """
     Reshape the piano roll to match into the required shape for predictions
+
+    Args
+    ----
+    piano_roll: array of shape (128, number of frames)
+    or (number of samples, 128, number of frames)
+        The piano roll to reshape
+    size: int
+        The number of frames we want in our output
+    
+    Returns
+    -------
+    piano_roll: array of shape (128, size)
+
+    piano_rolls: array of shape(number of samples, 128, size)
     """
     if piano_roll.shape[-1] < size:
         
         zeros_array = np.zeros((128, size - piano_roll.shape[-1]))
-        return np.concatenate((piano_roll, zeros_array), axis=1)
+        piano_roll = np.concatenate((piano_roll, zeros_array), axis=1)
+        return piano_roll
     
     if piano_roll.shape[-1] > size:
         
@@ -23,25 +38,28 @@ def reshape_piano_roll(piano_roll, size=500):
         return piano_rolls
 
 def piano_roll_to_pretty_midi(piano_roll, fs=100, program=0):
-    '''Convert a Piano Roll array into a PrettyMidi object
+    """
+    Convert a Piano Roll array into a PrettyMidi object
      with a single instrument.
-    Parameters
-    ----------
-    piano_roll : np.ndarray, shape=(128,frames), dtype=int
+
+    Args
+    ----
+    piano_roll: np.ndarray, shape=(128,frames), dtype=int
         Piano roll of one instrument
-    fs : int
+    fs: int
         Sampling frequency of the columns, i.e. each column is spaced apart
         by ``1./fs`` seconds.
-    program : int
+    program: int
         The program number of the instrument.
+
     Returns
     -------
-    midi_object : pretty_midi.PrettyMIDI
+    midi_object: pretty_midi.PrettyMIDI
         A pretty_midi.PrettyMIDI class instance describing
         the piano roll.
-    '''
+    """
 
-    notes, frames = piano_roll.shape
+    notes = piano_roll.shape[0]
     pm = pretty_midi.PrettyMIDI()
     instrument = pretty_midi.Instrument(program=program)
 
