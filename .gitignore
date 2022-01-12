@@ -12,3 +12,6 @@ PredVSTrue
 notebooks
 raw_data
 *.ipynb_checkpoints
+MIDIComposingAI.egg-info
+data.py
+trainer.py
