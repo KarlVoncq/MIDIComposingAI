@@ -214,7 +214,7 @@ def adding_chords_info(dataset, verbose=0):
         dataset = dataset.reshape((1, dataset.shape[0], dataset.shape[1]))
     
     # Get relative path of chords_midi.csv to use the function wherever we want
-    abs_path = os.path.join(os.path.dirname(__file__), '..raw_data/chords_midi.csv')
+    abs_path = os.path.join(os.path.dirname(__file__), '../raw_data/chords_midi.csv')
     path = os.path.relpath(abs_path)
 
     # Create a dataframe from csv
