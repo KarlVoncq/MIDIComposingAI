@@ -79,8 +79,8 @@ def predict(X):
     Args:
         X, a list or an array
     """
-    url = "https://europe-west1-wagon-bootcamp-328620.cloudfunctions.net/midi_composing_api"
-
+    url = "https://europe-west1-wagon-bootcamp-328705.cloudfunctions.net/function-1"
+    
     X = preprocess(X)
 
     response = []
